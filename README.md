@@ -1,0 +1,1 @@
+# clevertec_08_pattern
