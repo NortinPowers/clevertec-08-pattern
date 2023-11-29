@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "8.3"
+    id "io.freefair.aspectj.post-compile-weaving" version "8.4"
+}
+
+group = 'by.clevertec.proxy'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaLanguageVersion.of(17)
+    targetCompatibility = JavaLanguageVersion.of(17)
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    postgresqlVersion = '42.6.0'
+    snakeyamlVersion = '2.1'
+    junitVersion = '5.10.1'
+    mockitoVersion = '5.6.0'
+    mapstructVersion = '1.5.5.Final'
+    assertjVersion = '3.24.2'
+    log4jVersion = '2.20.0'
+    dbcpVersion = '2.11.0'
+    dbutilsVersion = '1.8.1'
+    mybatisVersion = '3.5.14'
+    aspectjVersion = '1.9.20.1'
+    itextpdfVersion = '5.5.13.3'
+}
+
+compileJava {
+    options.compilerArgs += [
+            '-Amapstruct.suppressGeneratorTimestamp=true',
+            '-Amapstruct.suppressGeneratorVersionInfoComment=true',
+            '-Amapstruct.verbose=true'
+    ]
+}
+
+dependencies {
+    implementation "org.postgresql:postgresql:${postgresqlVersion}"
+    implementation "org.yaml:snakeyaml:${snakeyamlVersion}"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    implementation "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    implementation "org.apache.commons:commons-dbcp2:${dbcpVersion}"
+    implementation "commons-dbutils:commons-dbutils:${dbutilsVersion}"
+    implementation "org.mybatis:mybatis:${mybatisVersion}"
+    implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+    implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+    implementation "com.itextpdf:itextpdf:${itextpdfVersion}"
+
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
+    testImplementation platform ("org.junit:junit-bom:${junitVersion}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+configurations {
+    aspectpath
+}
+
+tasks.register("aspectPath", Copy) {
+    from(configurations.aspectpath)
+    into(sourceSets.main.output.classesDirs.getSingleFile())
+}
+
+compileJava {
+    dependsOn(tasks.named("aspectPath"))
+}
+
+jar {
+    archiveFileName = "proxy-${version}.jar"
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    from(configurations.runtimeClasspath.files.collect { zipTree(it) })
+    manifest {
+        attributes 'Main-Class': 'by.clevertec.proxy.Main',
+                'Implementation-Title': 'pattern',
+                'Implementation-Version': version
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

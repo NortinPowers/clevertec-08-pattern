@@ -1,0 +1,12 @@
+database:
+  url: jdbc:postgresql://localhost:5432/proxy
+  username: postgres
+  password: root
+  driver-class-name: org.postgresql.Driver
+  max-connection: 30
+  min-connection: 10
+
+Cache:
+  algorithm: LRU #по умолчанию LRU
+#  algoritm: LFU
+  maxCollectionSize: 100
